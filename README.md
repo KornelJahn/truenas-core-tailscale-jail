@@ -58,10 +58,9 @@ Many thanks to *AndrewShumate*, *sretalla*, and *jgreco* for their valuable comm
 
 10. On the Tailscale web admin interface, generate an auth key under *Settings / Keys / Auth keys / Generate auth key...*. Enable *Pre-authorized* for a quicker process, click *Generate key*, and copy the auth key.
 
-11. In the jail shell, assign the auth key to the environment variable `SETUP_AUTHKEY` and run the Tailscale setup script. Assuming the default `csh` shell is active, proceed as
+11. In the jail shell, run the Tailscale setup script as
     ```
-    setenv SETUP_AUTHKEY <your-auth-key-goes-here>
-    ./setup-tailscale.sh
+    ./setup-tailscale.sh <tailscale-auth-key>
     ```
     Ensure that your tailnet can be accessed by checking
     ```
@@ -69,12 +68,15 @@ Many thanks to *AndrewShumate*, *sretalla*, and *jgreco* for their valuable comm
     ```
     inside the jail.
 
-12. Next, assign the host IP address to the environment variable `SETUP_HOSTIP` and run the `ipfw` NAT setup script:
+12. Next, run the `ipfw` NAT setup script:
     ```
-    setenv SETUP_HOSTIP <the-ip-of-the-truenas-host-goes-here>
-    ./setup-ipfw-nat.sh
+    ./setup-ipfw-nat.sh <host-ip-address> [<ports>]
     ```
-    Optionally, the forwarded ports can be configured likewise via the `SETUP_PORTS` environment variable that awaits a list of protocols & ports in the following format: `'proto1/port1 proto2/port2 [...]'`. For example, `tcp/22 tcp/443 tcp/2049 tcp/5201` that corresponds to forwading SSH, HTTPS, NFS4, and iperf3 connections, respectively.
+    where the `<ports>` argument is optional. It can be used to configure forwarded ports, and takes the following format: `'proto1/port1 proto2/port2 ...'`. For instance,
+    ```
+    ./setup-ipfw-nat.sh 192.168.1.2 'tcp/22 tcp/443 tcp/2049 tcp/5201'
+    ```
+    would set up forwading SSH, HTTPS, NFS4, and iperf3 connections, respectively, to `192.168.1.2`.
 
 13. Restart the jail.
 
@@ -97,7 +99,7 @@ Script `setup-ipfw-nat.sh` perfoms the following tasks:
 - generates the `/etc/ipfw.rules` script that sets up `ipfw`; and
 - creates/extends `/etc/rc.local` to create a workaround for the bug that `ipfw nat` is not set up on jail start-up.
 
-Alternative script `setup-reverse-proxy.sh` sets up an `nginx` reverse proxy to forward ports in the tailnet-to-host direction.
+Alternative script `setup-reverse-proxy.sh` sets up an `nginx` reverse proxy to forward ports in the tailnet-to-host direction. It takes the same arguments as `setup-ipfw-nat.sh`.
 
 ## Diagnostics
 
