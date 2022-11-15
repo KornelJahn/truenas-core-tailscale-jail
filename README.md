@@ -17,9 +17,9 @@ This solution relies on `ipfw`, FreeBSD's user interface for firewall & in-kerne
 
 This guide is based upon the great [how-to][AndrewShumateHowTo] by *AndrewShumate* on installing Tailscale in a TrueNAS Core jail. At the end, he recommends to turn the Tailscale client in the jail into a subnet router via the `--advertise-routes` command-line option. This guide, however, takes a different approach by **not** activating the subnet router functionality Tailscale itself, but turns the jail itself into a router using `ipfw`.
 
-Please note, however, that there are also counter-opinions in the community on relying on an `ipfw`-based solution, see e.g. the [comment][sretallaNginxConfig] by *sretalla*. Indeed, `ipfw` is difficult to setup right; I myself have struggled with it quite a lot, both due to my lack of experience and the errors I encountered while trying to set up `ipfw` NAT. However, once it works, it seems a clean solution (for both directions) at the level where this problem should probably be handled.
+Setting up a functioning `ipfw`-based solution has proven to be difficult, partially due to my own lack of experience and also due to the [issues](#ipfw-issues) I have encountered. However, it seems to solve access in both directions at the level where this problem should probably be handled.
 
-An alternative (partial) solution would be using a [reverse proxy](sretallaIdea) such as `nginx` (see [example here][sretallaNginxConfig]), which could replace port forwarding in the tailnet-to-host direction. A crude implementation of this concept is also provided by the script `setup-reverse-proxy.sh`.
+An alternative (partial) solution would be using a [reverse proxy][sretallaIdea] such as `nginx`, which could replace port forwarding in the tailnet-to-host direction. A crude implementation of this concept is also provided by the script `setup-reverse-proxy.sh`.
 
 The solution contained in this repo is meant to be temporary until an official Tailscale System Service or Plugin is introduced. Please support the [Jira ticket][JiraTicket] gathering interest for a Tailscale System Service in TrueNAS Core!
 
@@ -165,4 +165,3 @@ Even using FreeBSD 13.1-RELEASE-p3, there is an issue with `ipfw` NAT rules not 
 [ipfwSetsockoptInvalidArg]: https://lists.freebsd.org/archives/freebsd-current/2021-September/000605.html
 [ipfwUnknownRedirMode]: https://mailing.freebsd.ipfw.narkive.com/LbfKJTOf/does-nat-redirect-port-tcp-works-for-you-on-current
 [sretallaIdea]: https://www.truenas.com/community/threads/howto-install-tailscale-in-a-jail.98910/post-684564
-[sretallaNginxConfig]: https://www.truenas.com/community/threads/howto-install-tailscale-in-a-jail.98910/post-684569
