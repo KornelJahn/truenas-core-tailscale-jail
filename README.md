@@ -49,18 +49,10 @@ Many thanks to *AndrewShumate*, *sretalla*, and *jgreco* for their valuable comm
 
 8. In the drop-down section of the jail, start it and request a shell to the jail.
 
-9. Download the contents of this repository. You could install `curl` and download & extract the main branch tarball as
-   ```
-   pkg install -y curl
-   curl -L TODO-HTTPS-TARBALL-ADDRESS | tar -xz
-   ```
-   or install `git` in the jail and clone this repo as
+9. Clone this repository into the jail as
    ```
    pkg install -y git
    git clone https://github.com/KornelJahn/truenas-core-tailscale-jail.git
-   ```
-   Enter the repo directory as
-   ```
    cd truenas-core-tailscale-jail
    ```
 
