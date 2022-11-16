@@ -12,35 +12,41 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 
-# Append to /etc/sysctl.conf if unpatched
-grep -qxF 'net.inet.tcp.tso=0' /etc/sysctl.conf ||
-{
-  echo 'net.inet.tcp.tso=0'
-  echo 'net.inet.ip.fw.verbose=0'
-} >> /etc/sysctl.conf
+. ./set-default-ports.sh
 
-# Enable ipfw with NAT
-# Append to /etc/rc.conf if unpatched
-grep -qxF 'gateway_enable="YES"' /etc/rc.conf ||
-{
-  echo ''
-  echo 'gateway_enable="YES"'
-  echo 'firewall_enable="YES"'
-  echo 'firewall_nat_enable="YES"'
-  echo 'firewall_script="/etc/ipfw.rules"'
-  echo 'firewall_logging="YES"'
-  echo 'firewall_logif="YES"'
-} >> /etc/rc.conf
+target=/etc/sysctl.conf
+# Only append if target is unpatched
+if ! grep -qxF 'net.inet.tcp.tso=0' "$target"; then
+  echo "==== Appending to $target..."
+  {
+    echo 'net.inet.tcp.tso=0'
+    echo 'net.inet.ip.fw.verbose=0'
+  } | tee -a "$target"
+  echo
+fi
+
+# Enable IPFW with NAT
+target=/etc/rc.conf
+# Only append if target is unpatched
+if ! grep -qxF 'gateway_enable="YES"' "$target"; then
+  echo "==== Appending to $target..."
+  {
+    echo ''
+    echo 'gateway_enable="YES"'
+    echo 'firewall_enable="YES"'
+    echo 'firewall_nat_enable="YES"'
+    echo 'firewall_script="/etc/ipfw.rules"'
+    echo 'firewall_logging="YES"'
+    echo 'firewall_logif="YES"'
+  } | tee -a "$target"
+  echo
+fi
 
 # Create /etc/ipfw.rules to forward ports
-# Default selection:
-#   TCP 22: SSH
-#   TCP 443: WebUI HTTPS
-#   TCP 2049: NFS4
-#   TCP 5201: iperf3
-#   TCP 28757: WebUI VNC
 host="$1"
-proto_ports="${2:-tcp/22 tcp/443 tcp/2049 tcp/5201 tcp/28757}"
+proto_ports="${2:-$DEFAULT_PORTS}"
+target=/etc/ipfw.rules
+echo "==== Writing to $target..."
 {
   echo '#!/bin/sh'
   echo 'tun=tailscale0'
@@ -61,16 +67,20 @@ proto_ports="${2:-tcp/22 tcp/443 tcp/2049 tcp/5201 tcp/28757}"
   echo '$cmd add 100 nat 1 log ip4 from any to me in via $tun'
   echo '$cmd add 200 nat 1 log ip4 from $host/24 to any out via $tun'
   echo '$cmd add allow ip from any to any'
-} > /etc/ipfw.rules
-chmod a+x /etc/ipfw.rules
+} | tee "$target"
+echo
+chmod a+x "$target"
 
-# WORKAROUND: ipfw nat rules do not seem to be applied at start-up
-# Force restart of ipfw in /etc/rc.local
+# WORKAROUND: IPFW NAT rules do not seem to be applied at start-up
+# Force restart of IPFW in /etc/rc.local
+target=/etc/rc.local
+echo "==== Writing to $target..."
 {
   echo 'sleep 2'
-  echo 'logger WORKAROUND: forcing restart of ipfw to ensure working NAT...'
+  echo 'logger WORKAROUND: forcing restart of IPFW to ensure working NAT...'
   echo 'service ipfw restart'
-} > /etc/rc.local
-chmod a+x /etc/rc.local
+} | tee "$target"
+echo
+chmod a+x "$target"
 
 # vim: set ts=2 sw=2 sts=2 et:

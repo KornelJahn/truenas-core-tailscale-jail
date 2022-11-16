@@ -12,17 +12,16 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 
+. ./set-default-ports.sh
+
 # Install nginx
 pkg install -y nginx
 
 # Create reverse proxy to forward ports
-# Default selection:
-#   TCP 22: SSH
-#   TCP 443: WebUI HTTPS
-#   TCP 2049: NFS4
-#   TCP 5201: iperf3
 host="$1"
-proto_ports="${2:-tcp/22 tcp/443 tcp/2049 tcp/5201}"
+proto_ports="${2:-$DEFAULT_PORTS}"
+target=/usr/local/etc/nginx/nginx.conf
+echo "==== Writing to $target..."
 {
   echo 'load_module /usr/local/libexec/nginx/ngx_stream_module.so;'
   echo ''
@@ -37,7 +36,8 @@ proto_ports="${2:-tcp/22 tcp/443 tcp/2049 tcp/5201}"
     i=$((i+1))
   done
   echo '}'
-} > /usr/local/etc/nginx/nginx.conf
+} | tee "$target"
+echo
 
 # Enable and start nginx
 service nginx enable
