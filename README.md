@@ -17,7 +17,7 @@ This solution relies on IPFW, FreeBSD's user interface for firewall & in-kernel 
 
 This guide is based upon the great [How-To][AndrewShumateHowTo] by *AndrewShumate* on installing Tailscale in a TrueNAS Core jail. At the end, he recommends to turn the Tailscale client in the jail into a subnet router via the `--advertise-routes` command-line option. This guide, however, takes a different approach by **not** activating the subnet router functionality Tailscale itself, but turns the jail itself into a router using IPFW.
 
-Setting up a functioning IPFW-based solution has proven to be difficult, partially due to my own lack of experience and also due to the [issues](#ipfw-issues) I have encountered. Also, the community does not seem to recommend an IPFW-based solution in general, see [this comment][sretallaNginxConfig] by *sretalla*. However, it seems to solve access in both directions at the level where this problem should probably be handled.
+Setting up a functioning IPFW-based solution has proven to be difficult, partially due to my own lack of experience and also due to the [issues](#ipfw-issues) I have encountered. Also, relying on IPFW seems to be a controversial topic in the community according to [this comment][sretallaNginxConfig] by *sretalla*. However, IPFW can provide access in both directions at the layer where this problem should probably be handled.
 
 An alternative (partial) solution would be using a [reverse proxy][sretallaIdea] such as `nginx`, which could replace port forwarding in the tailnet-to-host direction. A crude implementation of this concept is also provided by the script `setup-reverse-proxy.sh`, based on the [example][sretallaNginxConfig] by *sretalla*.
 
