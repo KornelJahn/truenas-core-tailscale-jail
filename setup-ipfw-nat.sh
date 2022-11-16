@@ -22,7 +22,6 @@ if ! grep -qxF 'net.inet.tcp.tso=0' "$target"; then
     echo 'net.inet.tcp.tso=0'
     echo 'net.inet.ip.fw.verbose=0'
   } >> "$target"
-  echo
 fi
 
 # Enable IPFW with NAT
@@ -39,7 +38,6 @@ if ! grep -qxF 'gateway_enable="YES"' "$target"; then
     echo 'firewall_logging="YES"'
     echo 'firewall_logif="YES"'
   } >> "$target"
-  echo
 fi
 
 # Create /etc/ipfw.rules to forward ports
@@ -69,7 +67,6 @@ echo "Writing to $target..."
   echo '$cmd add 200 nat 1 log ip4 from $host/24 to any out via $tun'
   echo '$cmd add allow ip from any to any'
 } > "$target"
-echo
 chmod a+x "$target"
 
 # WORKAROUND: IPFW NAT rules do not seem to be applied at start-up
@@ -81,7 +78,6 @@ echo "Writing to $target..."
   echo 'logger WORKAROUND: forcing restart of IPFW to ensure working NAT...'
   echo 'service ipfw restart'
 } > "$target"
-echo
 chmod a+x "$target"
 
 # vim: set ts=2 sw=2 sts=2 et:

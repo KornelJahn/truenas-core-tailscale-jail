@@ -38,7 +38,6 @@ echo "Writing to $target..."
   done
   echo '}'
 } > "$target"
-echo
 
 # Enable and start nginx
 service nginx enable
