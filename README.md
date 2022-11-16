@@ -76,7 +76,7 @@ Many thanks to *AndrewShumate*, *sretalla*, and *jgreco* for their valuable comm
     ```
     ./setup-ipfw-nat.sh 192.168.1.2 'tcp/22 tcp/443'
     ```
-    would set up forwading SSH and HTTPS connections, respectively, to `192.168.1.2`.
+    would set up forwading SSH and HTTPS connections, respectively, to `192.168.1.2`. For the default port selection, see the helper script [`set-default-ports.sh`](set-default-ports.sh).
 
 13. Restart the jail.
 
