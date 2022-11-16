@@ -21,7 +21,8 @@ pkg install -y nginx
 host="$1"
 proto_ports="${2:-$DEFAULT_PORTS}"
 target=/usr/local/etc/nginx/nginx.conf
-echo "==== Writing to $target..."
+echo "Selected ports: $proto_ports"
+echo "Writing to $target..."
 {
   echo 'load_module /usr/local/libexec/nginx/ngx_stream_module.so;'
   echo ''
@@ -36,7 +37,7 @@ echo "==== Writing to $target..."
     i=$((i+1))
   done
   echo '}'
-} | tee "$target"
+} > "$target"
 echo
 
 # Enable and start nginx

@@ -17,11 +17,11 @@ fi
 target=/etc/sysctl.conf
 # Only append if target is unpatched
 if ! grep -qxF 'net.inet.tcp.tso=0' "$target"; then
-  echo "==== Appending to $target..."
+  echo "Appending to $target..."
   {
     echo 'net.inet.tcp.tso=0'
     echo 'net.inet.ip.fw.verbose=0'
-  } | tee -a "$target"
+  } >> "$target"
   echo
 fi
 
@@ -29,7 +29,7 @@ fi
 target=/etc/rc.conf
 # Only append if target is unpatched
 if ! grep -qxF 'gateway_enable="YES"' "$target"; then
-  echo "==== Appending to $target..."
+  echo "Appending to $target..."
   {
     echo ''
     echo 'gateway_enable="YES"'
@@ -38,7 +38,7 @@ if ! grep -qxF 'gateway_enable="YES"' "$target"; then
     echo 'firewall_script="/etc/ipfw.rules"'
     echo 'firewall_logging="YES"'
     echo 'firewall_logif="YES"'
-  } | tee -a "$target"
+  } >> "$target"
   echo
 fi
 
@@ -46,7 +46,8 @@ fi
 host="$1"
 proto_ports="${2:-$DEFAULT_PORTS}"
 target=/etc/ipfw.rules
-echo "==== Writing to $target..."
+echo "Selected ports: $proto_ports"
+echo "Writing to $target..."
 {
   echo '#!/bin/sh'
   echo 'tun=tailscale0'
@@ -67,19 +68,19 @@ echo "==== Writing to $target..."
   echo '$cmd add 100 nat 1 log ip4 from any to me in via $tun'
   echo '$cmd add 200 nat 1 log ip4 from $host/24 to any out via $tun'
   echo '$cmd add allow ip from any to any'
-} | tee "$target"
+} > "$target"
 echo
 chmod a+x "$target"
 
 # WORKAROUND: IPFW NAT rules do not seem to be applied at start-up
 # Force restart of IPFW in /etc/rc.local
 target=/etc/rc.local
-echo "==== Writing to $target..."
+echo "Writing to $target..."
 {
   echo 'sleep 2'
   echo 'logger WORKAROUND: forcing restart of IPFW to ensure working NAT...'
   echo 'service ipfw restart'
-} | tee "$target"
+} > "$target"
 echo
 chmod a+x "$target"
 
