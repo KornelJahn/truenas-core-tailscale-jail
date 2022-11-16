@@ -38,8 +38,9 @@ grep -qxF 'gateway_enable="YES"' /etc/rc.conf ||
 #   TCP 443: WebUI HTTPS
 #   TCP 2049: NFS4
 #   TCP 5201: iperf3
+#   TCP 28757: WebUI VNC
 host="$1"
-proto_ports="${2:-tcp/22 tcp/443 tcp/2049 tcp/5201}"
+proto_ports="${2:-tcp/22 tcp/443 tcp/2049 tcp/5201 tcp/28757}"
 {
   echo '#!/bin/sh'
   echo 'tun=tailscale0'
