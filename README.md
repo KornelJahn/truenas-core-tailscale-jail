@@ -74,9 +74,9 @@ Many thanks to *AndrewShumate*, *sretalla*, and *jgreco* for their valuable comm
     ```
     where the `<ports>` argument is optional. It can be used to configure forwarded ports, and takes the following format: `'proto1/port1 proto2/port2 ...'`. For instance,
     ```
-    ./setup-ipfw-nat.sh 192.168.1.2 'tcp/22 tcp/443 tcp/2049 tcp/5201'
+    ./setup-ipfw-nat.sh 192.168.1.2 'tcp/22 tcp/443'
     ```
-    would set up forwading SSH, HTTPS, NFS4, and iperf3 connections, respectively, to `192.168.1.2`.
+    would set up forwading SSH and HTTPS connections, respectively, to `192.168.1.2`.
 
 13. Restart the jail.
 
