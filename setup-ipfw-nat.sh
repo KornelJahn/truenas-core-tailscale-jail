@@ -3,6 +3,15 @@
 # Author: Kornel Jahn
 # License: BSD-3-Clause
 
+if [ $# -lt 1 ]; then
+  {
+    echo "usage: $(basename "$0") <host-ip-address> [<ports>]"
+    echo ''
+    echo 'where <ports> takes the form "proto1/port1 proto2/port2 ..."'
+  } 1>&2
+  exit 1
+fi
+
 # Append to /etc/sysctl.conf if unpatched
 grep -qxF 'net.inet.tcp.tso=0' /etc/sysctl.conf ||
 {
@@ -29,12 +38,13 @@ grep -qxF 'gateway_enable="YES"' /etc/rc.conf ||
 #   TCP 443: WebUI HTTPS
 #   TCP 2049: NFS4
 #   TCP 5201: iperf3
-proto_ports="${SETUP_PORTS:-tcp/22 tcp/443 tcp/2049 tcp/5201}"
+host="$1"
+proto_ports="${2:-tcp/22 tcp/443 tcp/2049 tcp/5201}"
 {
   echo '#!/bin/sh'
   echo 'tun=tailscale0'
   echo 'cmd=/sbin/ipfw'
-  echo "host=${SETUP_HOSTIP:?}"
+  echo "host=$host"
   echo ''
   echo '$cmd -q -f flush'
   echo ''

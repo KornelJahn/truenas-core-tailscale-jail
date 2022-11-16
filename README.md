@@ -31,7 +31,7 @@ Many thanks to *AndrewShumate*, *sretalla*, and *jgreco* for their valuable comm
 
 ### Creating a dedicated jail for Tailscale
 
-1. Create a new Jail via *Jails / Add / Advanced Jail Creation*. Name it under *Basic Properties / Name*. In this guide, we will use the name `nas-test`. By default, it will be the hostname of the jail (can be changed in the jail). Tailscale by default associates this hostname with the tailnet machine.
+1. Create a new Jail via *Jails / Add / Advanced Jail Creation*. Name it under *Basic Properties / Name*. By default, the name of the jail will also be its hostname (can be changed in the jail). Tailscale by default associates this hostname with the tailnet machine.
 
 2. For *Release*, currently, `13.1-RELEASE` **must** be chosen. See section below on [IPFW issues](#ipfw-issues) for more information.
 
@@ -58,10 +58,9 @@ Many thanks to *AndrewShumate*, *sretalla*, and *jgreco* for their valuable comm
 
 10. On the Tailscale web admin interface, generate an auth key under *Settings / Keys / Auth keys / Generate auth key...*. Enable *Pre-authorized* for a quicker process, click *Generate key*, and copy the auth key.
 
-11. In the jail shell, assign the auth key to the environment variable `SETUP_AUTHKEY` and run the Tailscale setup script. Assuming the default `csh` shell is active, proceed as
+11. In the jail shell, run the Tailscale setup script as
     ```
-    setenv SETUP_AUTHKEY <your-auth-key-goes-here>
-    ./setup-tailscale.sh
+    ./setup-tailscale.sh <tailscale-auth-key>
     ```
     Ensure that your tailnet can be accessed by checking
     ```
@@ -69,12 +68,15 @@ Many thanks to *AndrewShumate*, *sretalla*, and *jgreco* for their valuable comm
     ```
     inside the jail.
 
-12. Next, assign the host IP address to the environment variable `SETUP_HOSTIP` and run the IPFW NAT setup script:
+12. Next, run the IPFW NAT setup script:
     ```
-    setenv SETUP_HOSTIP <the-ip-of-the-truenas-host-goes-here>
-    ./setup-ipfw-nat.sh
+    ./setup-ipfw-nat.sh <host-ip-address> [<ports>]
     ```
-    Optionally, the forwarded ports can be configured likewise via the `SETUP_PORTS` environment variable that awaits a list of protocols & ports in the following format: `'proto1/port1 proto2/port2 [...]'`. For example, `tcp/22 tcp/443 tcp/2049 tcp/5201` that corresponds to forwading SSH, HTTPS, NFS4, and iperf3 connections, respectively.
+    where the `<ports>` argument is optional. It can be used to configure forwarded ports, and takes the following format: `'proto1/port1 proto2/port2 ...'`. For instance,
+    ```
+    ./setup-ipfw-nat.sh 192.168.1.2 'tcp/22 tcp/443 tcp/2049 tcp/5201'
+    ```
+    would set up forwading SSH, HTTPS, NFS4, and iperf3 connections, respectively, to `192.168.1.2`.
 
 13. Restart the jail.
 
@@ -82,7 +84,7 @@ Many thanks to *AndrewShumate*, *sretalla*, and *jgreco* for their valuable comm
 
 14. The TrueNAS host needs to be configured to route tailnet IP addresses `100.64.0.0/10` through the jail as gateway. If the TrueNAS host has a static IP address, it is enough to add a static route under *Network / Static Routes*, with *Destination* `100.64.0.0/10`, and *Gateway* set to the (stable) IP address of the jail. However, if the TrueNAS host uses DHCP to get its (statically leased) IP address, rather set the jail IP address as the default gateway under *Network / Global Configuration / Default Gateway / IPv4 Default Gateway*. As discussed in [this forum thread][DHCPStaticRouteThread], setting static routes is incompatible with DHCP, since -- as *jgreco* mentioned -- *"when an IP interface is reconfigured, in many cases, IP routes via that interface are cleared by the kernel."* Having configured routing, save the new settings.
 
-15. (Optional) If MagicDNS is used in Tailscale, you can configure your TrueNAS host to resolve tailnet FQDNs and hostnames. Relying on functioning routing to the jail, do so by adding the MagicDNS of the jail server at `100.100.100.100` under *Network / Global Configuration / DNS Servers / Nameserver 1*. The MagicDNS server will take care of non-tailnet DNS resolution by falling back either to the default DNS servers or to those set up in the Tailscale web admin interface. This setting will let you refer to tailnet machines as `<host-name>.<tailnet-name>.ts.net` (substitute appropriate values). To simply use machine hostnames, the search domain `<tailnet-name>.ts.net` needs to be added under *Network / Global Configuration / Hostname and Domains / Additional Domains*. Save the new settings.
+15. (Optional) If MagicDNS is used in Tailscale, you can configure your TrueNAS host to resolve tailnet FQDNs and hostnames. Relying on functioning routing to the jail, do so by adding the MagicDNS of the jail server at `100.100.100.100` under *Network / Global Configuration / DNS Servers / Nameserver 1*. The MagicDNS server will take care of non-tailnet DNS resolution by falling back either to the default DNS servers or to those set up in the Tailscale web admin interface. This setting will let you refer to tailnet machines as `<hostname>.<tailnet-name>.ts.net` (substitute appropriate values). To simply use machine hostnames, the search domain `<tailnet-name>.ts.net` needs to be added under *Network / Global Configuration / Hostname and Domains / Additional Domains*. Save the new settings.
 
 16. Test the new configuration. In the TrueNAS host shell, try to ping another machine on your tailnet by IP address and by FQDN (if MagicDNS is used). From another machine on your tailnet, try to access the WebUI of TrueNAS via its tailnet IP address and its tailnet FQDN.
 
@@ -97,7 +99,7 @@ Script `setup-ipfw-nat.sh` perfoms the following tasks:
 - generates the `/etc/ipfw.rules` script that sets up IPFW; and
 - creates/extends `/etc/rc.local` to create a workaround for the bug that `ipfw nat` is not set up on jail start-up.
 
-Alternative script `setup-reverse-proxy.sh` sets up an `nginx` reverse proxy to forward ports in the tailnet-to-host direction.
+Alternative script `setup-reverse-proxy.sh` sets up an `nginx` reverse proxy to forward ports in the tailnet-to-host direction. It takes the same arguments as `setup-ipfw-nat.sh`.
 
 ## Diagnostics
 
