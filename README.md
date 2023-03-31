@@ -84,9 +84,23 @@ Many thanks to *AndrewShumate*, *sretalla*, and *jgreco* for their valuable comm
 
 14. The TrueNAS host needs to be configured to route tailnet IP addresses `100.64.0.0/10` through the jail as gateway. If the TrueNAS host has a static IP address, it is enough to add a static route under *Network / Static Routes*, with *Destination* `100.64.0.0/10`, and *Gateway* set to the (stable) IP address of the jail. However, if the TrueNAS host uses DHCP to get its (statically leased) IP address, rather set the jail IP address as the default gateway under *Network / Global Configuration / Default Gateway / IPv4 Default Gateway*. As discussed in [this forum thread][DHCPStaticRouteThread], setting static routes is incompatible with DHCP, since -- as *jgreco* mentioned -- *"when an IP interface is reconfigured, in many cases, IP routes via that interface are cleared by the kernel."* Having configured routing, save the new settings.
 
-15. (Optional) If MagicDNS is used in Tailscale, you can configure your TrueNAS host to resolve tailnet FQDNs and hostnames. Relying on functioning routing to the jail, do so by adding the MagicDNS of the jail server at `100.100.100.100` under *Network / Global Configuration / DNS Servers / Nameserver 1*. The MagicDNS server will take care of non-tailnet DNS resolution by falling back either to the default DNS servers or to those set up in the Tailscale web admin interface. This setting will let you refer to tailnet machines as `<hostname>.<tailnet-name>.ts.net` (substitute appropriate values). To simply use machine hostnames, the search domain `<tailnet-name>.ts.net` needs to be added under *Network / Global Configuration / Hostname and Domains / Additional Domains*. Save the new settings.
+15. The tailnet jail then needs to be configured to route traffic from tailnet clients to local addresses. First stop tailscale by typing
+```
+tailscale down
+```
+Then bring it back up using the `--advertise-routes` flag
+```
+tailscale up --advertise-routes=<subnet1>/<netmask>,<subnet2>/<netmask>
+```
+So if the jail's address was 192.168.0.200 with a subnet mask of 255.255.255.0 and the remote address was 10.0.0.130 with a mask of 255.0.0.0 the command would look like
+```
+tailscale up --advertise-routes=192.168.0.0/24,10.0.0.0/8
+```
+16. After advertising the route from the tailscale jail it has to be authorized from the tailscale web admin portal. After approving both subnet connections traffic will be able to be routed between the jail's local network and the rest of your tailnet.
 
-16. Test the new configuration (restart of the host system may be required beforehand, as noted by [@larsyunker](https://github.com/larsyunker/)). In the TrueNAS host shell, try to ping another machine on your tailnet by IP address and by FQDN (if MagicDNS is used). From another machine on your tailnet, try to access the WebUI of TrueNAS via its tailnet IP address and its tailnet FQDN.
+17. (Optional) If MagicDNS is used in Tailscale, you can configure your TrueNAS host to resolve tailnet FQDNs and hostnames. Relying on functioning routing to the jail, do so by adding the MagicDNS of the jail server at `100.100.100.100` under *Network / Global Configuration / DNS Servers / Nameserver 1*. The MagicDNS server will take care of non-tailnet DNS resolution by falling back either to the default DNS servers or to those set up in the Tailscale web admin interface. This setting will let you refer to tailnet machines as `<hostname>.<tailnet-name>.ts.net` (substitute appropriate values). To simply use machine hostnames, the search domain `<tailnet-name>.ts.net` needs to be added under *Network / Global Configuration / Hostname and Domains / Additional Domains*. Save the new settings.
+
+18. Test the new configuration (restart of the host system may be required beforehand, as noted by [@larsyunker](https://github.com/larsyunker/)). In the TrueNAS host shell, try to ping another machine on your tailnet by IP address and by FQDN (if MagicDNS is used). From another machine on your tailnet, try to access the WebUI of TrueNAS via its tailnet IP address and its tailnet FQDN.
 
 ## Setup scripts
 
