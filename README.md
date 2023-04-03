@@ -49,16 +49,24 @@ Many thanks to *AndrewShumate*, *sretalla*, and *jgreco* for their valuable comm
 
 8. In the drop-down section of the jail, start it and request a shell to the jail.
 
-9. Clone this repository into the jail as
+9. Backup `/etc/pkg/FreeBSD.conf` and then replace inside the URL
+   `pkg+http://pkg.FreeBSD.org/${ABI}/quarterly` to
+   `pkg+http://pkg.FreeBSD.org/${ABI}/latest`, which can be achieved, e.g., as
+   ```
+   cp /etc/pkg/FreeBSD.conf /etc/pkg/FreeBSD.conf.bak
+   sed -i '' 's/quarterly/latest/g' /etc/pkg/FreeBSD.conf
+   ```
+
+10. Clone this repository into the jail as
    ```
    pkg install -y git
    git clone https://github.com/KornelJahn/truenas-core-tailscale-jail.git
    cd truenas-core-tailscale-jail
    ```
 
-10. On the Tailscale web admin interface, generate an auth key under *Settings / Keys / Auth keys / Generate auth key...*. Enable *Pre-authorized* for a quicker process, click *Generate key*, and copy the auth key.
+11. On the Tailscale web admin interface, generate an auth key under *Settings / Keys / Auth keys / Generate auth key...*. Enable *Pre-approved* for a quicker process, click *Generate key*, and copy the auth key.
 
-11. In the jail shell, run the Tailscale setup script as
+12. In the jail shell, run the Tailscale setup script as
     ```
     ./setup-tailscale.sh <tailscale-auth-key>
     ```
@@ -68,7 +76,7 @@ Many thanks to *AndrewShumate*, *sretalla*, and *jgreco* for their valuable comm
     ```
     inside the jail.
 
-12. Next, run the IPFW NAT setup script:
+13. Next, run the IPFW NAT setup script:
     ```
     ./setup-ipfw-nat.sh <host-ip-address> [<ports>]
     ```
@@ -78,15 +86,15 @@ Many thanks to *AndrewShumate*, *sretalla*, and *jgreco* for their valuable comm
     ```
     would set up forwading SSH and HTTPS connections, respectively, to `192.168.1.2`. For the default port selection, see the helper script [`set-default-ports.sh`](set-default-ports.sh).
 
-13. Restart the jail.
+14. Restart the jail.
 
 ### Configuring TrueNAS routing and DNS for the TrueNAS host
 
-14. The TrueNAS host needs to be configured to route tailnet IP addresses `100.64.0.0/10` through the jail as gateway. If the TrueNAS host has a static IP address, it is enough to add a static route under *Network / Static Routes*, with *Destination* `100.64.0.0/10`, and *Gateway* set to the (stable) IP address of the jail. However, if the TrueNAS host uses DHCP to get its (statically leased) IP address, rather set the jail IP address as the default gateway under *Network / Global Configuration / Default Gateway / IPv4 Default Gateway*. As discussed in [this forum thread][DHCPStaticRouteThread], setting static routes is incompatible with DHCP, since -- as *jgreco* mentioned -- *"when an IP interface is reconfigured, in many cases, IP routes via that interface are cleared by the kernel."* Having configured routing, save the new settings.
+15. The TrueNAS host needs to be configured to route tailnet IP addresses `100.64.0.0/10` through the jail as gateway. If the TrueNAS host has a static IP address, it is enough to add a static route under *Network / Static Routes*, with *Destination* `100.64.0.0/10`, and *Gateway* set to the (stable) IP address of the jail. However, if the TrueNAS host uses DHCP to get its (statically leased) IP address, rather set the jail IP address as the default gateway under *Network / Global Configuration / Default Gateway / IPv4 Default Gateway*. As discussed in [this forum thread][DHCPStaticRouteThread], setting static routes is incompatible with DHCP, since -- as *jgreco* mentioned -- *"when an IP interface is reconfigured, in many cases, IP routes via that interface are cleared by the kernel."* Having configured routing, save the new settings.
 
-15. (Optional) If MagicDNS is used in Tailscale, you can configure your TrueNAS host to resolve tailnet FQDNs and hostnames. Relying on functioning routing to the jail, do so by adding the MagicDNS of the jail server at `100.100.100.100` under *Network / Global Configuration / DNS Servers / Nameserver 1*. The MagicDNS server will take care of non-tailnet DNS resolution by falling back either to the default DNS servers or to those set up in the Tailscale web admin interface. This setting will let you refer to tailnet machines as `<hostname>.<tailnet-name>.ts.net` (substitute appropriate values). To simply use machine hostnames, the search domain `<tailnet-name>.ts.net` needs to be added under *Network / Global Configuration / Hostname and Domains / Additional Domains*. Save the new settings.
+16. (Optional) If MagicDNS is used in Tailscale, you can configure your TrueNAS host to resolve tailnet FQDNs and hostnames. Relying on functioning routing to the jail, do so by adding the MagicDNS of the jail server at `100.100.100.100` under *Network / Global Configuration / DNS Servers / Nameserver 1*. The MagicDNS server will take care of non-tailnet DNS resolution by falling back either to the default DNS servers or to those set up in the Tailscale web admin interface. This setting will let you refer to tailnet machines as `<hostname>.<tailnet-name>.ts.net` (substitute appropriate values). To simply use machine hostnames, the search domain `<tailnet-name>.ts.net` needs to be added under *Network / Global Configuration / Hostname and Domains / Additional Domains*. Save the new settings.
 
-16. Test the new configuration (restart of the host system may be required beforehand, as noted by [@larsyunker](https://github.com/larsyunker/)). In the TrueNAS host shell, try to ping another machine on your tailnet by IP address and by FQDN (if MagicDNS is used). From another machine on your tailnet, try to access the WebUI of TrueNAS via its tailnet IP address and its tailnet FQDN.
+17. Test the new configuration (restart of the host system may be required beforehand, as noted by [@larsyunker](https://github.com/larsyunker/)). In the TrueNAS host shell, try to ping another machine on your tailnet by IP address and by FQDN (if MagicDNS is used). From another machine on your tailnet, try to access the WebUI of TrueNAS via its tailnet IP address and its tailnet FQDN.
 
 ## Setup scripts
 
