@@ -1,5 +1,10 @@
 # Setting up Tailscale on TrueNAS Core
 
+## :warning: Archival notice :warning:
+
+In the meantime, Tailscale expanded their Free plan and [have allowed multiple subnet routers](https://tailscale.com/blog/pricing-v3). Since there have been some reported
+issues with the solution below and it is a burden to maintain, I now prefer [AndrewShumate's approach][AndrewShumateHowTo] and not struggle with installing Tailscale on TrueNAS Core but rather switch to [site-to-site networking](https://tailscale.com/kb/1214/site-to-site) using multiple subnet routers. The solution below hasn't been updated for a while and is now explicitly archived. Thank you for your understanding!
+
 ## Introduction
 
 The goal of this guide is to work around the lack of a built-in Tailscale System Service in TrueNAS Core and enable
